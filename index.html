@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frost & Fate Tavern</title>
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+    <style>
+        /* Base Styles */
+        :root {
+            --tavern-brown: #5c3a21;
+            --parchment: #f5e7d0;
+            --candle-glow: #ffd700;
+            --critical-red: #c33;
+            --critical-green: #3c3;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'IM Fell English SC', serif;
+            color: var(--parchment);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+        
+        /* Video Background */
+        #tavern-video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            z-index: -100;
+            filter: brightness(0.6) sepia(0.3);
+            object-fit: cover;
+        }
+        
+        /* Main Container */
+        .tavern-container {
+            background-color: rgba(92, 58, 33, 0.7);
+            backdrop-filter: blur(3px);
+            border: 2px solid var(--tavern-brown);
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.7),
+                        inset 0 0 20px rgba(0, 0, 0, 0.5);
+            padding: 2rem;
+            max-width: 600px;
+            margin: 2rem auto;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Dynamic Lighting Effects */
+        .candle-light {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, 
+                rgba(255, 215, 0, 0.3) 0%, 
+                rgba(255, 165, 0, 0.1) 50%, 
+                transparent 70%);
+            border-radius: 50%;
+            animation: flicker 5s infinite alternate;
+            pointer-events: none;
+        }
+        
+        .candle-light:nth-child(1) {
+            top: -50px;
+            left: -50px;
+            animation-delay: 0.5s;
+        }
+        
+        .candle-light:nth-child(2) {
+            bottom: -30px;
+            right: -30px;
+            animation-delay: 1s;
+        }
+        
+        @keyframes flicker {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            20%, 60% { transform: scale(1.1); opacity: 1; }
+            40%, 80% { transform: scale(0.9); opacity: 0.7; }
+        }
+        
+        /* Typography */
+        h1 {
+            font-size: 3rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7),
+                         0 0 10px rgba(255, 215, 0, 0.5);
+            margin-bottom: 1.5rem;
+            color: var(--parchment);
+            position: relative;
+        }
+        
+        /* Dice Area */
+        .dice-area {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dice-area::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--candle-glow), 
+                transparent);
+            box-shadow: 0 0 10px var(--candle-glow);
+        }
+        
+        /* 3D Dice Container */
+        #d20-model {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto;
+            filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7));
+        }
+        
+        /* Button */
+        .roll-btn {
+            background: linear-gradient(to bottom, 
+                var(--tavern-brown), 
+                #3a2a1a);
+            color: var(--parchment);
+            border: 1px solid #8b5a2b;
+            padding: 12px 30px;
+            font-size: 1.3rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .roll-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        }
+        
+        .roll-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .roll-btn::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 215, 0, 0.1),
+                rgba(255, 215, 0, 0) 50%
+            );
+            transform: rotate(30deg);
+        }
+        
+        /* Results Display */
+        .result {
+            font-size: 2rem;
+            margin-top: 1.5rem;
+            font-weight: bold;
+            min-height: 3rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+            padding: 0.5rem;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .critical-fail {
+            color: var(--critical-red);
+            animation: shake 0.5s, glow-red 1s infinite alternate;
+        }
+        
+        .critical-success {
+            color: var(--critical-green);
+            animation: pulse 0.5s infinite alternate, glow-green 1s infinite alternate;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        
+        @keyframes glow-red {
+            from { text-shadow: 0 0 5px var(--critical-red); }
+            to { text-shadow: 0 0 15px var(--critical-red); }
+        }
+        
+        @keyframes glow-green {
+            from { text-shadow: 0 0 5px var(--critical-green); }
+            to { text-shadow: 0 0 15px var(--critical-green); }
+        }
+        
+        /* Smoke Effect */
+        .smoke {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.2;
+        }
+    </style>
+</head>
+<body>
+    <!-- Video Background -->
+    <video autoplay muted loop id="tavern-video">
+        <source src="https://assets.mixkit.co/videos/preview/mixkit-tavern-fireplace-1182-large.mp4" type="video/mp4">
+    </video>
+    
+    <!-- Dynamic Lighting Elements -->
+    <div class="candle-light"></div>
+    <div class="candle-light"></div>
+    
+    <!-- Smoke Effect -->
+    <div class="smoke">
+        <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path fill="url(#smoke-gradient)" d="M0,0 L100,0 L100,100 L0,100 Z"></path>
+            <defs>
+                <radialGradient id="smoke-gradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                    <stop offset="0%" stop-color="#000000" stop-opacity="0"></stop>
+                    <stop offset="100%" stop-color="#000000" stop-opacity="0.3"></stop>
+                </radialGradient>
+            </defs>
+        </svg>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="tavern-container">
+        <h1>Frost & Fate Tavern</h1>
+        
+        <div class="dice-area">
+            <div id="d20-model"></div>
+        </div>
+        
+        <button class="roll-btn" id="rollButton">Roll the Bones</button>
+        <div class="result" id="result"></div>
+    </div>
+
+    <!-- Three.js for 3D dice -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Initialize 3D dice scene
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ 
+            alpha: true, 
+            antialias: true,
+            powerPreference: "high-performance"
+        });
+        renderer.setSize(150, 150);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('d20-model').appendChild(renderer.domElement);
+
+        // Enhanced lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
+        
+        const directionalLight1 = new THREE.DirectionalLight(0xffd700, 0.8);
+        directionalLight1.position.set(1, 1, 1);
+        scene.add(directionalLight1);
+        
+        const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight2.position.set(-1, -1, -1);
+        scene.add(directionalLight2);
+        
+        const pointLight = new THREE.PointLight(0xffa500, 1, 10);
+        pointLight.position.set(0, 0, 5);
+        scene.add(pointLight);
+
+        // Create D20 geometry with enhanced materials
+        const textureLoader = new THREE.TextureLoader();
+        const diceTexture = textureLoader.load('https://i.imgur.com/JuXB6qa.jpeg');
+        const normalMap = textureLoader.load('https://i.imgur.com/XYZ1234.jpg'); // Add normal map if available
+        
+        const geometry = new THREE.IcosahedronGeometry(3, 1); // Higher detail
+        const material = new THREE.MeshPhongMaterial({ 
+            map: diceTexture,
+            normalMap: normalMap,
+            specular: 0x222222,
+            shininess: 50,
+            reflectivity: 0.5
+        });
+        
+        const dice = new THREE.Mesh(geometry, material);
+        scene.add(dice);
+        camera.position.z = 8;
+
+        // Animation loop with delta timing
+        let clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            
+            // Subtle idle rotation
+            if (!isRolling) {
+                dice.rotation.x += delta * 0.1;
+                dice.rotation.y += delta * 0.15;
+            }
+            
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Sound effects with spatial audio
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const sounds = {
+            roll: loadSound('https://assets.mixkit.co/sfx/preview/mixkit-dice-rolling-1991.mp3'),
+            crit: loadSound('https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3'),
+            fail: loadSound('https://assets.mixkit.co/sfx/preview/mixkit-arcade-retro-game-over-213.mp3')
+        };
+        
+        function loadSound(url) {
+            return fetch(url)
+                .then(response => response.arrayBuffer())
+                .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer));
+        }
+        
+        function playSound(buffer, volume = 1) {
+            const source = audioContext.createBufferSource();
+            const gainNode = audioContext.createGain();
+            source.buffer = buffer;
+            gainNode.gain.value = volume;
+            source.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            source.start(0);
+            return source;
+        }
+
+        // Roll mechanics
+        let isRolling = false;
+        document.getElementById('rollButton').addEventListener('click', rollDice);
+        
+        async function rollDice() {
+            if (isRolling) return;
+            isRolling = true;
+            
+            const resultElement = document.getElementById('result');
+            const rollButton = document.getElementById('rollButton');
+            
+            // Reset display
+            resultElement.textContent = '';
+            resultElement.className = 'result';
+            rollButton.disabled = true;
+            
+            // Play roll sound with spatial effect
+            const rollBuffer = await sounds.roll;
+            const rollSound = playSound(rollBuffer, 0.7);
+            
+            // Enhanced dice physics
+            const targetRotation = {
+                x: Math.random() * Math.PI * 8,
+                y: Math.random() * Math.PI * 8,
+                z: Math.random() * Math.PI * 8
+            };
+            
+            const duration = 2000 + Math.random() * 1000;
+            const startTime = Date.now();
+            
+            function animateDice() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Custom easing function for realistic deceleration
+                const easeProgress = progress < 0.8 ? 
+                    progress * 1.25 : 
+                    1 - Math.pow(1 - progress, 4) * 0.2;
+                
+                dice.rotation.x = easeProgress * targetRotation.x;
+                dice.rotation.y = easeProgress * targetRotation.y;
+                dice.rotation.z = easeProgress * targetRotation.z;
+                
+                // Add bounce effect at the end
+                if (progress > 0.9) {
+                    const bounce = Math.sin((progress - 0.9) * Math.PI * 10) * 0.2;
+                    dice.position.y = bounce;
+                }
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animateDice);
+                } else {
+                    dice.position.y = 0;
+                    showResult();
+                }
+            }
+            
+            animateDice();
+            
+            async function showResult() {
+                const roll = Math.floor(Math.random() * 20) + 1;
+                resultElement.textContent = `You rolled: ${roll}`;
+                rollButton.disabled = false;
+                isRolling = false;
+                
+                // Critical effects
+                if (roll === 1) {
+                    resultElement.classList.add('critical-fail');
+                    const failBuffer = await sounds.fail;
+                    playSound(failBuffer, 0.8);
+                    
+                    // Add dramatic lighting
+                    directionalLight1.color.setHex(0xff0000);
+                    setTimeout(() => {
+                        directionalLight1.color.setHex(0xffd700);
+                    }, 1000);
+                    
+                } else if (roll === 20) {
+                    resultElement.classList.add('critical-success');
+                    const critBuffer = await sounds.crit;
+                    playSound(critBuffer, 0.8);
+                    
+                    // Celebration lighting
+                    directionalLight1.color.setHex(0x00ff00);
+                    pointLight.intensity = 2;
+                    setTimeout(() => {
+                        directionalLight1.color.setHex(0xffd700);
+                        pointLight.intensity = 1;
+                    }, 1000);
+                }
+            }
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = 1;
+            camera.updateProjectionMatrix();
+            renderer.setSize(150, 150);
+        });
+        
+        // Initialize with subtle animation
+        let isInitialized = false;
+        function initAnimation() {
+            if (isInitialized) return;
+            isInitialized = true;
+            
+            dice.rotation.set(
+                Math.PI * 0.2,
+                Math.PI * 0.5,
+                0
+            );
+            
+            gsap.to(dice.rotation, {
+                x: Math.PI * 0.3,
+                y: Math.PI * 0.7,
+                duration: 3,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+            });
+        }
+        
+        // Start initialization after slight delay
+        setTimeout(initAnimation, 500);
+    </script>
+</body>
+</html>
